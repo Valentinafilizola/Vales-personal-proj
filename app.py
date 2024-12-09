@@ -45,7 +45,7 @@ def test_page():
 
 def home_page():
     # print("this is the home page?")
-    print("Home page route is triggered")
+    #print("Home page route is triggered")
    
     return  render_template('home.html')
 
