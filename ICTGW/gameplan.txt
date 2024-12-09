@@ -1,0 +1,91 @@
+## Seattle Vibe INSTRUCTIONS ##
+
+erm apparently i have to like.. do stuff
+for this project to look good??? wtf
+#################################
+
+1. Set Up Dialogflow on Google Cloud
+Create a Google Cloud Account:
+Visit Google Cloud Console and create an account if you don't already have one.
+You may need to enable billing, but Dialogflow's Standard Edition has free-tier usage.
+Enable the Dialogflow API:
+Go to the API & Services Dashboard and search for "Dialogflow."
+Enable the API.
+Create a New Dialogflow Agent:
+Go to the Dialogflow Console.
+Create a new agent and link it to your Google Cloud project.
+Set the default language (e.g., English) and time zone.
+2. Design the Quiz Experience in Dialogflow
+Create Intents for Each Quiz Step:
+Each step of the quiz (e.g., questions and responses) should have a corresponding Intent.
+Example:
+Intent 1: “Welcome Message”
+User says: “Start quiz,” “What vibe suits me?”
+Bot replies: “Let’s find out your Seattle vibe! First question: What’s your favorite activity?”
+Intent 2: “Activity Response”
+User says: “Going to concerts,” “Exploring parks,” etc.
+Bot replies: “Awesome choice! Next question: What’s your preferred weather?”
+Set Contexts to Track Quiz Progress:
+Use input/output contexts to maintain the flow.
+Example:
+start_quiz as an output context for the first intent and input context for the next question.
+Add Fulfillment for Personalized Results:
+After the user completes the quiz, use fulfillment to calculate results.
+Example:
+If the user chose “concerts” and “rainy days,” they get the “Indie Music Explorer” vibe.
+3. Integrate Custom Logic with Webhook Fulfillment
+Set Up a Fulfillment Webhook:
+In the Dialogflow Fulfillment section, enable webhook calls.
+Provide a URL for your webhook (e.g., hosted on Flask, Django, or Firebase).
+Create the Webhook Logic:
+Write logic to handle user inputs and calculate the result based on their choices.
+Example Python code for a Flask app:
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    req = request.get_json()
+
+    # Extract user responses from Dialogflow
+    activity = req['queryResult']['parameters'].get('activity')
+    weather = req['queryResult']['parameters'].get('weather')
+
+    # Decide Seattle vibe
+    if activity == "concerts" and weather == "rainy":
+        vibe = "Indie Music Explorer"
+    elif activity == "hiking" and weather == "sunny":
+        vibe = "Nature Enthusiast"
+    else:
+        vibe = "Urban Adventurer"
+
+    # Send response back to Dialogflow
+    return jsonify({
+        "fulfillmentText": f"Your Seattle vibe is: {vibe}!"
+    })
+
+if __name__ == "__main__":
+    app.run(debug=True)
+Host the Webhook:
+Deploy the webhook on a platform like Heroku, AWS, or Google Cloud Functions.
+4. Test and Deploy
+Test in Dialogflow Console:
+Use the built-in simulator to interact with your quiz bot.
+Verify that it processes inputs correctly and returns personalized results.
+Integrate on Your Website:
+Embed the chatbot using the Dialogflow Web Demo integration:
+Go to Integrations in Dialogflow Console and enable Web Demo.
+Copy the iframe code and paste it into your website.
+5. Optional Enhancements
+Gamify the Interface:
+Add animations or visuals for quiz steps.
+Display result categories as fun icons or illustrations.
+Add Recommendations:
+After the quiz, link the user to event listings fetched from the Ticketmaster API based on their vibe.
+
+- Use AWS Lambda for free webhook
+Free tier includes:
+1 million free requests per month
+400,000 GB-seconds of compute time
+Works well for Python or Node.js-based webhooks.

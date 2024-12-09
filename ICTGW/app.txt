@@ -1,1 +1,270 @@
 
+
+#### December 8th ####
+
+Today I revamped the homescreen and started wireframing
+im trying to figure out if i should use a chat bot i think itd be cool
+but if i do i want to figure out how itll actually be helpful
+since i already have tiket master suggesting events to users
+
+
+
+
+
+
+
+
+### Working Version of APP.PY ###
+
+#################################
+import os
+from flask import Flask, render_template, request
+import requests
+from dotenv import load_dotenv
+
+# TODO
+# - Get Ticketmaster API to work... done!
+# - Get Amadeus Hotel API to work
+# - Fix CSS to make it look pretty!
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Ticketmaster API
+TICKETMASTER_API_KEY = "fuDhyQsrlyPj2c8vFLOtKZsKfApDkpQj"  # Replace with your API key
+BASE_URL_TICKETMASTER = "https://app.ticketmaster.com/discovery/v2/events.json"
+
+
+def get_seattle_attractions(start_date=None, end_date=None):
+    params = {
+        "city": "Seattle",  # Search for events in Seattle
+        "checkInDate": start_date,
+        "checkOutDate": end_date,
+        "apikey": TICKETMASTER_API_KEY,  # API Key
+    }
+    response = requests.get(BASE_URL_TICKETMASTER, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data["_embedded"]["events"] if "_embedded" in data else []
+    else:
+        print(f"Error fetching events: {response.status_code}, {response.json()}")
+        return []
+
+# Flask route to show the home page (search form)
+@app.route('/', methods=['GET', 'POST'])
+
+
+def home_page():
+    # print("this is the home page?")
+    return  render_template('home.html')
+
+@app.route('/search', methods=['GET', 'POST'])
+def search_page():
+    if request.method == 'POST':
+        start_date = request.form['start_date']  # User input for start date
+        end_date = request.form['end_date']  # User input for end date
+
+        # Get events in Seattle for the specified date range
+        events = get_seattle_attractions(start_date, end_date)
+
+        # Get hotels in Seattle
+       # hotels = get_seattle_hotels(start_date, end_date)
+
+
+        # Pass both events and hotels to the results page
+        return render_template('results.html', events=events)
+    
+    # Render the home page with the search form
+    return render_template('index.html')
+
+@app.route('/events')
+def events_page():
+    # Render the results.html template with events passed from the search_page
+    return render_template('results.html')
+# Runs Flask app
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+
+#### HOME.HTML with pink glowing buttons #####
+###############################################
+
+
+/* General Reset FOR START PAGE */
+body, h1, h2, p, input, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Dark Mode Styles (Default) */
+body {
+    background-color: #121212; /* Dark background */
+    color: #f9f9f9; /* Light text */
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px;
+    background: #1e1e1e; /* Dark container background */
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #f9f9f9; /* Light text for header */
+    margin-bottom: 20px;
+    display: inline-block; /* Ensure letters animate individually */
+}
+
+h1 span {
+    display: inline-block;
+    transition: transform 0.3s ease, color 0.3s ease;
+    color: #f9f9f9; /* Light color by default */
+}
+
+h1 span:hover {
+    transform: rotate(20deg);
+    color: #E67999; /* Pink accent on hover */
+}
+
+/* Button Styling */
+button {
+    padding: 10px 20px;
+    background-color: #333333; /* Dark grey background for button */
+    color: #f9f9f9; /* Light text */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; /* Smooth hover effect */
+}
+
+button:hover {
+    background-color: #E67999; /* Pink hover effect */
+    box-shadow: 0 0 10px #E67999; /* Glow effect for hover */
+    transform: scale(1.05); /* Slight zoom-in effect */
+}
+
+/* Light Mode Styles */
+body.light-mode {
+    background-color: #f9f9f9; /* Light background */
+    color: #333; /* Dark text */
+}
+
+body.light-mode .container {
+    background: #ffffff; /* Light container background */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for light mode */
+}
+
+body.light-mode h1 {
+    color: #1c1c1e; /* Dark header text */
+}
+
+body.light-mode h1 span {
+    color: #1c1c1e; /* Dark text for span */
+}
+
+body.light-mode h1 span:hover {
+    color: #E67999; /* Pink accent on hover in light mode */
+}
+
+body.light-mode button {
+    background-color: #ddd; /* Light grey background for button */
+    color: #333; /* Dark text */
+}
+
+body.light-mode button:hover {
+    background-color: #E67999; /* Pink hover effect in light mode */
+    box-shadow: 0 0 10px #E67999; /* Glow effect for hover in light mode */
+}
+
+/* Form Input Styling */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+form label {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+form input {
+    font-size: 1rem;
+    padding: 10px;
+    border: 1px solid #555; /* Darker border */
+    background-color: #1e1e1e; /* Dark input background */
+    color: #f9f9f9; /* Light text for inputs */
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+form input:focus {
+    border-color: #E67999; /* Pink focus border */
+    background-color: #2a2a2a; /* Slightly lighter background on focus */
+}
+
+body.light-mode form input {
+    border: 1px solid #ccc; /* Lighter border in light mode */
+    background-color: #ffffff; /* White input background */
+    color: #333; /* Dark text in light mode */
+}
+
+body.light-mode form input:focus {
+    border-color: #E67999; /* Pink focus border in light mode */
+    background-color: #f9f9f9; /* Slightly lighter background on focus in light mode */
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 0.9rem;
+    color: #777; /* Subtle grey for footer text */
+}
+
+body.light-mode footer {
+    color: #555; /* Slightly darker footer text in light mode */
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    background-color: #333333; /* Dark grey background */
+    color: #f9f9f9; /* Light text */
+    border: none;
+    border-radius: 50%; /* Circular button */
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.2s ease;
+}
+
+body.light-mode .theme-toggle {
+    background-color: #ddd; /* Light button background */
+    color: #333; /* Dark button text */
+}
+
+.theme-toggle:hover {
+    background-color: #E67999; /* Pink hover */
+    box-shadow: 0 0 10px #E67999;
+}
+
